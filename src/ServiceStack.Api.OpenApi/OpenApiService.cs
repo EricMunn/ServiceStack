@@ -211,7 +211,7 @@ namespace ServiceStack.Api.OpenApi
 
             if (!type.IsGenericType) return null;
             var genericType = type.GetGenericTypeDefinition();
-            if (genericType == typeof(List<>) || genericType == typeof(IList<>) || genericType == typeof(IEnumerable<>))
+            if (genericType == typeof(List<>) || genericType == typeof(IList<>) || genericType == typeof(IEnumerable<>) || genericType == typeof(ICollection<>))
                 return type.GetGenericArguments()[0];
             return null;
         }
