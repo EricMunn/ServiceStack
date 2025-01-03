@@ -123,8 +123,8 @@ public class PredefinedRoutesFeature : IPlugin, IAfterInitAppHost, Model.IHasStr
                 }
 
                 var options = host.CreateEndpointOptions();
-                
-                // Map /api/{Request} routes
+
+                // Map /api/{Request} routes and /api/{Request}[] batch routes
                 var apis = routeBuilder.MapGroup(apiPath);
                 foreach (var entry in appHost.Metadata.OperationsMap)
                 {
@@ -138,10 +138,16 @@ public class PredefinedRoutesFeature : IPlugin, IAfterInitAppHost, Model.IHasStr
                         httpContext.ProcessRequestAsync(ApiHandlers.JsonEndpointHandler(apiPath, httpContext.Request.Path), apiName:requestType.Name));
 
                     host.ConfigureOperationEndpoint(builder, operation, options);
-                    
+
+                    var batchBuilder = apis.MapMethods("/" + requestType.Name + "[]", ["POST"], (HttpResponse response, HttpContext httpContext) =>
+                        httpContext.ProcessRequestAsync(ApiHandlers.JsonEndpointHandler(apiPath, httpContext.Request.Path), apiName: requestType.Name + "[]"));
+
+                    host.ConfigureOperationEndpoint(batchBuilder, operation, options);
+
                     foreach (var handler in host.Options.RouteHandlerBuilders)
                     {
                         handler(builder, operation, operation.Method, apiPath + "/" + requestType.Name);
+                        handler(batchBuilder, operation, "POST", apiPath + "/" + requestType.Name + "[]");
                     }
                 }
 
